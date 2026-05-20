@@ -4,17 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0f172a" />
-  <title>SchrottRadar</title>
+  <title>MSN Abholservice · Pilot</title>
   <style>
     :root {
       color-scheme: dark;
       --bg: #020617;
-      --card: rgba(15, 23, 42, .92);
+      --card: rgba(15, 23, 42, .94);
       --muted: #94a3b8;
       --text: #f8fafc;
       --line: rgba(148, 163, 184, .22);
       --accent: #38bdf8;
       --accent2: #22c55e;
+      --warn: #facc15;
       --danger: #fb7185;
     }
 
@@ -25,7 +26,7 @@
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at 20% 0%, rgba(56, 189, 248, .25), transparent 34%),
+        radial-gradient(circle at 20% 0%, rgba(56, 189, 248, .24), transparent 34%),
         radial-gradient(circle at 90% 15%, rgba(34, 197, 94, .18), transparent 30%),
         linear-gradient(145deg, #020617, #0f172a 55%, #111827);
       color: var(--text);
@@ -33,7 +34,7 @@
     }
 
     .wrap {
-      width: min(760px, 100%);
+      width: min(860px, 100%);
       margin: 0 auto;
       display: grid;
       gap: 16px;
@@ -46,11 +47,8 @@
       box-shadow: 0 24px 70px rgba(0, 0, 0, .34);
     }
 
-    header {
-      padding: 26px;
-      overflow: hidden;
-      position: relative;
-    }
+    header { padding: 28px; }
+    section { padding: 22px; }
 
     .badge {
       display: inline-flex;
@@ -62,15 +60,21 @@
       border: 1px solid rgba(56, 189, 248, .25);
       color: #bae6fd;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 14px;
     }
 
     h1 {
       margin: 0 0 10px;
-      font-size: clamp(34px, 9vw, 62px);
+      font-size: clamp(34px, 9vw, 64px);
       line-height: .94;
       letter-spacing: -.06em;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      letter-spacing: -.02em;
     }
 
     p {
@@ -80,15 +84,14 @@
       font-size: 16px;
     }
 
-    section { padding: 22px; }
-
     .grid {
       display: grid;
       gap: 14px;
     }
 
-    @media (min-width: 680px) {
+    @media (min-width: 720px) {
       .grid.two { grid-template-columns: 1fr 1fr; }
+      .grid.three { grid-template-columns: 1fr 1fr 1fr; }
     }
 
     label {
@@ -110,7 +113,7 @@
       outline: none;
     }
 
-    textarea { min-height: 98px; resize: vertical; }
+    textarea { min-height: 104px; resize: vertical; }
 
     input:focus, textarea:focus, select:focus {
       border-color: rgba(56, 189, 248, .8);
@@ -121,6 +124,10 @@
       display: grid;
       gap: 12px;
       margin-top: 16px;
+    }
+
+    @media (min-width: 720px) {
+      .actions.row { grid-template-columns: 1fr 1fr; }
     }
 
     button, .link-button {
@@ -141,26 +148,21 @@
     .primary { background: var(--accent); color: #03131f; }
     .secondary { background: rgba(148, 163, 184, .16); color: #e2e8f0; border: 1px solid var(--line); }
     .success { background: var(--accent2); color: #02120a; }
+    .warning { background: var(--warn); color: #171003; }
+    .danger { background: rgba(251, 113, 133, .18); color: #fecdd3; border: 1px solid rgba(251, 113, 133, .35); }
 
-    .status {
+    .status, .history {
       margin-top: 16px;
       padding: 15px;
       border-radius: 18px;
       border: 1px solid var(--line);
       background: rgba(2, 6, 23, .55);
-      white-space: pre-wrap;
       color: #e2e8f0;
     }
 
-    .status.error {
-      border-color: rgba(251, 113, 133, .45);
-      color: #fecdd3;
-    }
-
-    .status.ok {
-      border-color: rgba(34, 197, 94, .45);
-      color: #bbf7d0;
-    }
+    .status { white-space: pre-wrap; }
+    .status.error { border-color: rgba(251, 113, 133, .45); color: #fecdd3; }
+    .status.ok { border-color: rgba(34, 197, 94, .45); color: #bbf7d0; }
 
     .mini {
       font-size: 13px;
@@ -168,43 +170,47 @@
       margin-top: 10px;
     }
 
-    .steps {
-      counter-reset: step;
-      display: grid;
-      gap: 10px;
-      margin-top: 14px;
+    .card {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(2, 6, 23, .44);
+      border: 1px solid rgba(148, 163, 184, .18);
+      margin-top: 12px;
     }
 
-    .step {
-      display: grid;
-      grid-template-columns: 36px 1fr;
-      gap: 12px;
-      align-items: start;
-      padding: 12px;
-      border-radius: 16px;
-      background: rgba(2, 6, 23, .38);
-      border: 1px solid var(--line);
-    }
+    .card strong { font-size: 16px; }
+    .card small { color: var(--muted); }
 
-    .step::before {
-      counter-increment: step;
-      content: counter(step);
-      width: 28px;
-      height: 28px;
-      display: grid;
-      place-items: center;
+    .pill {
+      display: inline-flex;
+      padding: 5px 9px;
       border-radius: 999px;
-      background: rgba(56, 189, 248, .18);
-      color: #bae6fd;
+      font-size: 12px;
       font-weight: 900;
+      margin: 6px 6px 6px 0;
+      border: 1px solid var(--line);
     }
 
-    code {
-      background: rgba(15, 23, 42, .9);
-      border: 1px solid var(--line);
-      padding: 2px 6px;
-      border-radius: 8px;
-      color: #bae6fd;
+    .pill.open { color: #bae6fd; background: rgba(56, 189, 248, .13); }
+    .pill.route { color: #fef08a; background: rgba(250, 204, 21, .13); }
+    .pill.done { color: #bbf7d0; background: rgba(34, 197, 94, .13); }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .card-actions button, .card-actions a {
+      width: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 11px;
+      border-radius: 12px;
+      font-size: 13px;
+      text-decoration: none;
     }
 
     a { color: #7dd3fc; }
@@ -213,50 +219,29 @@
 <body>
   <div class="wrap">
     <header>
-      <div class="badge">🚛 kostenlos · ohne Server · GPS-Ping</div>
-      <h1>SchrottRadar</h1>
-      <p>Leute unterwegs melden Schrott per Standortfreigabe. Du bekommst Push, Zeitstempel, Koordinaten, Genauigkeit und einen Google-Maps-Link zum Abholen.</p>
+      <div class="badge">🚛 Pilotbetrieb · Standortmeldung · kostenlose Testversion</div>
+      <h1>Schrott-Abholung melden</h1>
+      <p>Mit diesem Formular kannst du einen möglichen Schrottfund zur Abholung melden. Übermittelt werden Standort, Uhrzeit, Materialart und optional eine kurze Notiz. Der Service befindet sich aktuell im Testbetrieb.</p>
     </header>
 
-    <section id="setup">
-      <h2>1. Einmal einrichten</h2>
-      <p>Trag dein ntfy-Topic ein. Beispiel: <code>schrott-markus-9f3a1c7b</code>. Je geheimer, desto besser.</p>
-
-      <div class="grid two" style="margin-top:16px">
-        <div>
-          <label for="topic">ntfy Topic</label>
-          <input id="topic" placeholder="schrott-markus-geheim-123" autocomplete="off" />
-        </div>
-        <div>
-          <label for="owner">Dein Anzeigename optional</label>
-          <input id="owner" placeholder="Markus Schrottservice" />
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="secondary" id="saveSetup">Einstellung speichern</button>
-        <a class="link-button secondary" href="https://ntfy.sh/app" target="_blank" rel="noreferrer">ntfy-App öffnen/installieren</a>
-      </div>
-
-      <div class="steps">
-        <div class="step"><p>Installiere die ntfy-App auf deinem Handy oder öffne <a href="https://ntfy.sh/app" target="_blank" rel="noreferrer">ntfy.sh/app</a>.</p></div>
-        <div class="step"><p>Abonniere exakt dasselbe Topic, das du oben einträgst.</p></div>
-        <div class="step"><p>Hoste diese HTML-Datei kostenlos bei GitHub Pages, Netlify oder Cloudflare Pages und verteile den Link.</p></div>
-      </div>
-      <p class="mini">Kosten: 0 €. Google Maps wird nur als Link genutzt, dadurch brauchst du keinen Google-API-Key.</p>
+    <section style="border-color: rgba(56, 189, 248, .28);">
+      <h2>Schrott-Abholung im Testbetrieb</h2>
+      <p>Über dieses Formular kannst du einen möglichen Abholort übermitteln. Der Betreiber erhält eine interne Benachrichtigung mit Standort, Zeitstempel und Google-Maps-Link.</p>
+      <p class="mini">Hinweis: Diese Version ist noch kein verbindliches Buchungssystem. Eine Abholung ist erst bestätigt, wenn der Betreiber sich zurückmeldet.</p>
     </section>
 
     <section>
-      <h2>2. Schrott melden</h2>
+      <h2>Abholung anfragen</h2>
+
       <div class="grid two">
         <div>
-          <label for="reporter">Finder / Kontakt optional</label>
-          <input id="reporter" placeholder="Name, WhatsApp, Telefonnummer" autocomplete="name" />
+          <label for="reporter">Name / Kontakt für Rückfragen optional</label>
+          <input id="reporter" placeholder="Name, WhatsApp oder Telefonnummer" autocomplete="name" />
         </div>
         <div>
-          <label for="type">Art</label>
+          <label for="type">Material / Gegenstand</label>
           <select id="type">
-            <option>Schrott / Metall</option>
+            <option>Mischschrott / Metall</option>
             <option>Waschmaschine</option>
             <option>Kühlschrank</option>
             <option>Fahrrad</option>
@@ -265,66 +250,74 @@
             <option>Sonstiges</option>
           </select>
         </div>
+        <div>
+          <label for="driver">Sammler / Fahrer</label>
+          <select id="driver">
+            <option>Noch nicht zugewiesen</option>
+            <option>Markus</option>
+            <option>Fahrer 2</option>
+            <option>Fahrer 3</option>
+          </select>
+        </div>
+        <div>
+          <label for="photo">Foto optional</label>
+          <input id="photo" type="file" accept="image/*" capture="environment" />
+        </div>
       </div>
 
       <div style="margin-top:14px">
-        <label for="note">Notiz optional</label>
-        <textarea id="note" placeholder="z. B. liegt neben Glascontainern, gut erreichbar, großer Haufen..."></textarea>
+        <label for="note">Beschreibung optional</label>
+        <textarea id="note" placeholder="z. B. Waschmaschine vor dem Haus, Metallteile im Hof, gut erreichbar, bitte vorher melden..."></textarea>
       </div>
 
-      <div class="actions">
-        <button class="primary" id="sendReport">📍 Standort senden</button>
-        <button class="secondary" id="copyReport">Meldung als Text kopieren</button>
+      <div class="actions row">
+        <button class="primary" id="sendReport">📍 Abholort übermitteln</button>
+        <button class="secondary" id="copyReport">Anfrage als Text kopieren</button>
       </div>
 
       <div id="status" class="status" hidden></div>
-      <p class="mini">Der Browser fragt den Finder aktiv nach Standortfreigabe. Ohne Zustimmung wird nichts gesendet.</p>
+      <p class="mini">Mit dem Absenden wird nur der aktuelle Standort übertragen. Diese Meldung ist eine unverbindliche Anfrage im Testbetrieb.</p>
     </section>
 
     <section>
-      <h2>3. Verteilen</h2>
-      <p>Du kannst den Link in WhatsApp-Gruppen, Nachbarschaftsgruppen oder an Stammkunden schicken. Auf Android/iPhone lässt sich die Seite als App auf dem Homescreen speichern.</p>
+      <h2>Lokale Einsatzzentrale</h2>
+      <p>Diese Übersicht speichert Meldungen auf diesem Gerät. Status und Historie sind in dieser kostenlosen GitHub-Version lokal. Für eine gemeinsame Live-Karte auf mehreren Geräten braucht es später eine kostenlose Datenbank wie Supabase.</p>
+      <div class="actions row">
+        <button class="secondary" id="showHistory">📋 Historie aktualisieren</button>
+        <button class="success" id="openNextMap">🗺️ Nächsten offenen Fund öffnen</button>
+      </div>
+      <div class="actions row">
+        <button class="secondary" id="exportHistory">Export als JSON</button>
+        <button class="danger" id="clearHistory">Lokale Historie löschen</button>
+      </div>
+      <div id="history" class="history" hidden></div>
+    </section>
+
+    <section>
+      <h2>Hinweis zum Pilotbetrieb</h2>
+      <p>Dieses Formular dient aktuell zum Testen von Standortmeldungen für mögliche Schrottabholungen. Eine Abholung ist erst bestätigt, wenn der Betreiber sich zurückmeldet.</p>
     </section>
   </div>
 
   <script>
+    const INTERNAL_TOPIC = "schrott-mns-9f3a1c7b";
+    const REPORTS_KEY = "msn-abholservice-reports-v2";
+
     const els = {
-      topic: document.getElementById("topic"),
-      owner: document.getElementById("owner"),
-      saveSetup: document.getElementById("saveSetup"),
       reporter: document.getElementById("reporter"),
       type: document.getElementById("type"),
+      driver: document.getElementById("driver"),
+      photo: document.getElementById("photo"),
       note: document.getElementById("note"),
       sendReport: document.getElementById("sendReport"),
       copyReport: document.getElementById("copyReport"),
-      status: document.getElementById("status")
+      status: document.getElementById("status"),
+      showHistory: document.getElementById("showHistory"),
+      openNextMap: document.getElementById("openNextMap"),
+      exportHistory: document.getElementById("exportHistory"),
+      clearHistory: document.getElementById("clearHistory"),
+      history: document.getElementById("history")
     };
-
-    const STORAGE_KEY = "schrottradar-settings-v1";
-
-    function loadSettings() {
-      try {
-        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-        if (data.topic) els.topic.value = data.topic;
-        if (data.owner) els.owner.value = data.owner;
-      } catch (_) {}
-    }
-
-    function saveSettings() {
-      const topic = normalizeTopic(els.topic.value);
-      const owner = els.owner.value.trim();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ topic, owner }));
-      els.topic.value = topic;
-      showStatus("Einstellung gespeichert. Jetzt dasselbe Topic in der ntfy-App abonnieren.", "ok");
-    }
-
-    function normalizeTopic(value) {
-      return value.trim()
-        .replace(/^https?:\/\/ntfy\.sh\//i, "")
-        .replace(/[^a-zA-Z0-9_-]/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
-    }
 
     function showStatus(message, type = "") {
       els.status.hidden = false;
@@ -354,56 +347,173 @@
       }).format(date);
     }
 
+    function makeId(date) {
+      return `SR-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}-${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(2, "0")}${String(date.getSeconds()).padStart(2, "0")}`;
+    }
+
     function buildReport(position) {
       const timestamp = new Date();
+      const id = makeId(timestamp);
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
       const accuracy = Math.round(position.coords.accuracy || 0);
       const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+      const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
       const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`;
 
       const reporter = els.reporter.value.trim();
-      const owner = els.owner.value.trim();
       const type = els.type.value;
+      const driver = els.driver.value;
       const note = els.note.value.trim();
+      const photoName = els.photo.files && els.photo.files[0] ? els.photo.files[0].name : "";
 
-      const lines = [
-        "🚛 Neuer Schrott-Fund",
-        owner ? `Empfänger: ${owner}` : null,
-        `Zeit: ${formatTimestamp(timestamp)}`,
-        `Art: ${type}`,
-        `Koordinaten: ${lat.toFixed(6)}, ${lon.toFixed(6)}`,
-        accuracy ? `Genauigkeit: ca. ${accuracy} m` : null,
-        reporter ? `Finder/Kontakt: ${reporter}` : null,
-        note ? `Notiz: ${note}` : null,
-        `Google Maps: ${mapsUrl}`,
-        `OpenStreetMap: ${osmUrl}`
-      ].filter(Boolean);
+      const report = {
+        id,
+        createdAt: timestamp.toISOString(),
+        timeLabel: formatTimestamp(timestamp),
+        status: "Offen",
+        lat,
+        lon,
+        accuracy,
+        mapsUrl,
+        routeUrl,
+        osmUrl,
+        reporter,
+        type,
+        driver,
+        note,
+        photoName
+      };
 
-      return { text: lines.join("\n"), mapsUrl, lat, lon };
+      report.text = [
+        "🚛 Neue Abholanfrage · Testbetrieb",
+        `ID: ${report.id}`,
+        `Zeit: ${report.timeLabel}`,
+        `Status: ${report.status}`,
+        `Material/Gegenstand: ${report.type}`,
+        `Fahrer: ${report.driver}`,
+        `Koordinaten: ${report.lat.toFixed(6)}, ${report.lon.toFixed(6)}`,
+        report.accuracy ? `Genauigkeit: ca. ${report.accuracy} m` : null,
+        report.reporter ? `Name/Kontakt: ${report.reporter}` : null,
+        report.photoName ? `Foto ausgewählt: ${report.photoName}` : null,
+        report.note ? `Beschreibung: ${report.note}` : null,
+        `Google Maps: ${report.mapsUrl}`,
+        `Route: ${report.routeUrl}`,
+        `OpenStreetMap: ${report.osmUrl}`
+      ].filter(Boolean).join("\n");
+
+      return report;
     }
 
-    async function sendReport() {
-      const topic = normalizeTopic(els.topic.value);
-      if (!topic) {
-        showStatus("Bitte erst ein ntfy-Topic eintragen und speichern.", "error");
+    function getReports() {
+      try {
+        return JSON.parse(localStorage.getItem(REPORTS_KEY) || "[]");
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function setReports(reports) {
+      localStorage.setItem(REPORTS_KEY, JSON.stringify(reports.slice(0, 150)));
+    }
+
+    function saveReport(report) {
+      const reports = getReports();
+      reports.unshift(report);
+      setReports(reports);
+    }
+
+    function updateReportStatus(id, status) {
+      const reports = getReports().map(report => report.id === id ? { ...report, status } : report);
+      setReports(reports);
+      renderHistory();
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>'"]/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;"
+      }[char]));
+    }
+
+    function statusClass(status) {
+      if (status === "Abgeholt") return "done";
+      if (status === "Unterwegs") return "route";
+      return "open";
+    }
+
+    function renderHistory() {
+      const reports = getReports();
+      els.history.hidden = false;
+
+      if (!reports.length) {
+        els.history.innerHTML = "Noch keine lokalen Meldungen gespeichert.";
         return;
       }
 
+      els.history.innerHTML = reports.map(report => `
+        <div class="card">
+          <strong>${escapeHtml(report.id)}</strong>
+          <span class="pill ${statusClass(report.status)}">${escapeHtml(report.status)}</span>
+          <br>
+          <small>${escapeHtml(new Date(report.createdAt).toLocaleString("de-DE"))}</small>
+          <p style="margin-top:8px">
+            <b>${escapeHtml(report.type)}</b><br>
+            Fahrer: ${escapeHtml(report.driver || "Noch nicht zugewiesen")}<br>
+            ${report.reporter ? `Kontakt: ${escapeHtml(report.reporter)}<br>` : ""}
+            ${report.note ? `Beschreibung: ${escapeHtml(report.note)}<br>` : ""}
+            ${report.photoName ? `Foto: ${escapeHtml(report.photoName)}<br>` : ""}
+            Koordinaten: ${Number(report.lat).toFixed(6)}, ${Number(report.lon).toFixed(6)}
+          </p>
+          <div class="card-actions">
+            <a class="secondary" href="${report.mapsUrl}" target="_blank" rel="noreferrer">Google Maps</a>
+            <a class="secondary" href="${report.routeUrl}" target="_blank" rel="noreferrer">Route</a>
+            <button class="warning" onclick="updateReportStatus('${report.id}', 'Unterwegs')">Unterwegs</button>
+            <button class="success" onclick="updateReportStatus('${report.id}', 'Abgeholt')">Abgeholt</button>
+            <button class="secondary" onclick="updateReportStatus('${report.id}', 'Offen')">Offen</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function openNextMap() {
+      const reports = getReports().filter(report => report.status !== "Abgeholt");
+      if (!reports.length) {
+        showStatus("Keine offenen lokalen Funde vorhanden.", "error");
+        return;
+      }
+      window.open(reports[0].routeUrl, "_blank");
+    }
+
+    function exportHistory() {
+      const reports = getReports();
+      const blob = new Blob([JSON.stringify(reports, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "msn-abholservice-historie.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function sendReport() {
       els.sendReport.disabled = true;
-      showStatus("Standort wird abgefragt... Bitte im Browser erlauben.");
+      showStatus("Standort wird abgefragt... Bitte die Standortfreigabe erlauben.");
 
       try {
         const position = await getPosition();
         const report = buildReport(position);
-        const endpoint = `https://ntfy.sh/${topic}`;
+        const endpoint = `https://ntfy.sh/${INTERNAL_TOPIC}`;
 
         showStatus("Standort erhalten. Push wird gesendet...");
 
         const response = await fetch(endpoint, {
           method: "POST",
           headers: {
-            "Title": "SchrottRadar",
+            "Title": "MSN Abholservice",
             "Priority": "high",
             "Tags": "rotating_light,truck,wastebasket",
             "Click": report.mapsUrl
@@ -415,30 +525,44 @@
           throw new Error(`ntfy meldet HTTP ${response.status}`);
         }
 
-        showStatus(`Gesendet ✅\n\n${report.text}`, "ok");
+        saveReport(report);
+        renderHistory();
+        showStatus(`Abholanfrage übermittelt ✅\n\n${report.text}`, "ok");
       } catch (error) {
-        showStatus(`Fehler: ${error.message || error}\n\nTipp: Standortfreigabe erlauben. Auf iPhone/Android funktioniert es am besten über HTTPS, also z. B. GitHub Pages, Netlify oder Cloudflare Pages.`, "error");
+        showStatus(`Fehler: ${error.message || error}\n\nTipp: Standortfreigabe erlauben. Auf iPhone/Android funktioniert es am besten über HTTPS.`, "error");
       } finally {
         els.sendReport.disabled = false;
       }
     }
 
     async function copyReport() {
-      showStatus("Standort wird abgefragt, danach wird der Text kopiert...");
+      showStatus("Standort wird abgefragt, danach wird die Anfrage kopiert...");
+
       try {
         const position = await getPosition();
         const report = buildReport(position);
         await navigator.clipboard.writeText(report.text);
-        showStatus(`Meldung kopiert ✅\n\n${report.text}`, "ok");
+        saveReport(report);
+        renderHistory();
+        showStatus(`Anfrage kopiert ✅\n\n${report.text}`, "ok");
       } catch (error) {
         showStatus(`Kopieren fehlgeschlagen: ${error.message || error}`, "error");
       }
     }
 
-    els.saveSetup.addEventListener("click", saveSettings);
     els.sendReport.addEventListener("click", sendReport);
     els.copyReport.addEventListener("click", copyReport);
-    loadSettings();
+    els.showHistory.addEventListener("click", renderHistory);
+    els.openNextMap.addEventListener("click", openNextMap);
+    els.exportHistory.addEventListener("click", exportHistory);
+    els.clearHistory.addEventListener("click", () => {
+      if (!confirm("Lokale Historie wirklich löschen?")) return;
+      localStorage.removeItem(REPORTS_KEY);
+      renderHistory();
+      showStatus("Lokale Historie gelöscht.", "ok");
+    });
+
+    renderHistory();
   </script>
 </body>
 </html>
