@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>SchrottRadar</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --card: rgba(15, 23, 42, .92);
+      --muted: #94a3b8;
+      --text: #f8fafc;
+      --line: rgba(148, 163, 184, .22);
+      --accent: #38bdf8;
+      --accent2: #22c55e;
+      --danger: #fb7185;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(56, 189, 248, .25), transparent 34%),
+        radial-gradient(circle at 90% 15%, rgba(34, 197, 94, .18), transparent 30%),
+        linear-gradient(145deg, #020617, #0f172a 55%, #111827);
+      color: var(--text);
+      padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+    }
+
+    .wrap {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    header, section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .34);
+    }
+
+    header {
+      padding: 26px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, .13);
+      border: 1px solid rgba(56, 189, 248, .25);
+      color: #bae6fd;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(34px, 9vw, 62px);
+      line-height: .94;
+      letter-spacing: -.06em;
+    }
+
+    p {
+      margin: 0;
+      color: #cbd5e1;
+      line-height: 1.55;
+      font-size: 16px;
+    }
+
+    section { padding: 22px; }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    @media (min-width: 680px) {
+      .grid.two { grid-template-columns: 1fr 1fr; }
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+      color: #e2e8f0;
+      margin: 0 0 8px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid rgba(148, 163, 184, .32);
+      background: rgba(2, 6, 23, .68);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 14px 15px;
+      font: inherit;
+      outline: none;
+    }
+
+    textarea { min-height: 98px; resize: vertical; }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: rgba(56, 189, 248, .8);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, .12);
+    }
+
+    .actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    button, .link-button {
+      border: 0;
+      border-radius: 18px;
+      padding: 16px 18px;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: transform .08s ease, opacity .15s ease;
+    }
+
+    button:active, .link-button:active { transform: translateY(1px); }
+    button:disabled { opacity: .55; cursor: wait; }
+
+    .primary { background: var(--accent); color: #03131f; }
+    .secondary { background: rgba(148, 163, 184, .16); color: #e2e8f0; border: 1px solid var(--line); }
+    .success { background: var(--accent2); color: #02120a; }
+
+    .status {
+      margin-top: 16px;
+      padding: 15px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, .55);
+      white-space: pre-wrap;
+      color: #e2e8f0;
+    }
+
+    .status.error {
+      border-color: rgba(251, 113, 133, .45);
+      color: #fecdd3;
+    }
+
+    .status.ok {
+      border-color: rgba(34, 197, 94, .45);
+      color: #bbf7d0;
+    }
+
+    .mini {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .steps {
+      counter-reset: step;
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(2, 6, 23, .38);
+      border: 1px solid var(--line);
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, .18);
+      color: #bae6fd;
+      font-weight: 900;
+    }
+
+    code {
+      background: rgba(15, 23, 42, .9);
+      border: 1px solid var(--line);
+      padding: 2px 6px;
+      border-radius: 8px;
+      color: #bae6fd;
+    }
+
+    a { color: #7dd3fc; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="badge">🚛 kostenlos · ohne Server · GPS-Ping</div>
+      <h1>SchrottRadar</h1>
+      <p>Leute unterwegs melden Schrott per Standortfreigabe. Du bekommst Push, Zeitstempel, Koordinaten, Genauigkeit und einen Google-Maps-Link zum Abholen.</p>
+    </header>
+
+    <section id="setup">
+      <h2>1. Einmal einrichten</h2>
+      <p>Trag dein ntfy-Topic ein. Beispiel: <code>schrott-markus-9f3a1c7b</code>. Je geheimer, desto besser.</p>
+
+      <div class="grid two" style="margin-top:16px">
+        <div>
+          <label for="topic">ntfy Topic</label>
+          <input id="topic" placeholder="schrott-markus-geheim-123" autocomplete="off" />
+        </div>
+        <div>
+          <label for="owner">Dein Anzeigename optional</label>
+          <input id="owner" placeholder="Markus Schrottservice" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="secondary" id="saveSetup">Einstellung speichern</button>
+        <a class="link-button secondary" href="https://ntfy.sh/app" target="_blank" rel="noreferrer">ntfy-App öffnen/installieren</a>
+      </div>
+
+      <div class="steps">
+        <div class="step"><p>Installiere die ntfy-App auf deinem Handy oder öffne <a href="https://ntfy.sh/app" target="_blank" rel="noreferrer">ntfy.sh/app</a>.</p></div>
+        <div class="step"><p>Abonniere exakt dasselbe Topic, das du oben einträgst.</p></div>
+        <div class="step"><p>Hoste diese HTML-Datei kostenlos bei GitHub Pages, Netlify oder Cloudflare Pages und verteile den Link.</p></div>
+      </div>
+      <p class="mini">Kosten: 0 €. Google Maps wird nur als Link genutzt, dadurch brauchst du keinen Google-API-Key.</p>
+    </section>
+
+    <section>
+      <h2>2. Schrott melden</h2>
+      <div class="grid two">
+        <div>
+          <label for="reporter">Finder / Kontakt optional</label>
+          <input id="reporter" placeholder="Name, WhatsApp, Telefonnummer" autocomplete="name" />
+        </div>
+        <div>
+          <label for="type">Art</label>
+          <select id="type">
+            <option>Schrott / Metall</option>
+            <option>Waschmaschine</option>
+            <option>Kühlschrank</option>
+            <option>Fahrrad</option>
+            <option>Auto-/Maschinenteil</option>
+            <option>Kabel / Kupfer</option>
+            <option>Sonstiges</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <label for="note">Notiz optional</label>
+        <textarea id="note" placeholder="z. B. liegt neben Glascontainern, gut erreichbar, großer Haufen..."></textarea>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="sendReport">📍 Standort senden</button>
+        <button class="secondary" id="copyReport">Meldung als Text kopieren</button>
+      </div>
+
+      <div id="status" class="status" hidden></div>
+      <p class="mini">Der Browser fragt den Finder aktiv nach Standortfreigabe. Ohne Zustimmung wird nichts gesendet.</p>
+    </section>
+
+    <section>
+      <h2>3. Verteilen</h2>
+      <p>Du kannst den Link in WhatsApp-Gruppen, Nachbarschaftsgruppen oder an Stammkunden schicken. Auf Android/iPhone lässt sich die Seite als App auf dem Homescreen speichern.</p>
+    </section>
+  </div>
+
+  <script>
+    const els = {
+      topic: document.getElementById("topic"),
+      owner: document.getElementById("owner"),
+      saveSetup: document.getElementById("saveSetup"),
+      reporter: document.getElementById("reporter"),
+      type: document.getElementById("type"),
+      note: document.getElementById("note"),
+      sendReport: document.getElementById("sendReport"),
+      copyReport: document.getElementById("copyReport"),
+      status: document.getElementById("status")
+    };
+
+    const STORAGE_KEY = "schrottradar-settings-v1";
+
+    function loadSettings() {
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        if (data.topic) els.topic.value = data.topic;
+        if (data.owner) els.owner.value = data.owner;
+      } catch (_) {}
+    }
+
+    function saveSettings() {
+      const topic = normalizeTopic(els.topic.value);
+      const owner = els.owner.value.trim();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ topic, owner }));
+      els.topic.value = topic;
+      showStatus("Einstellung gespeichert. Jetzt dasselbe Topic in der ntfy-App abonnieren.", "ok");
+    }
+
+    function normalizeTopic(value) {
+      return value.trim()
+        .replace(/^https?:\/\/ntfy\.sh\//i, "")
+        .replace(/[^a-zA-Z0-9_-]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+    }
+
+    function showStatus(message, type = "") {
+      els.status.hidden = false;
+      els.status.className = `status ${type}`.trim();
+      els.status.textContent = message;
+    }
+
+    function getPosition() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error("Dieses Gerät unterstützt keine Standortfreigabe."));
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 18000,
+          maximumAge: 0
+        });
+      });
+    }
+
+    function formatTimestamp(date) {
+      return new Intl.DateTimeFormat("de-DE", {
+        dateStyle: "full",
+        timeStyle: "medium"
+      }).format(date);
+    }
+
+    function buildReport(position) {
+      const timestamp = new Date();
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const accuracy = Math.round(position.coords.accuracy || 0);
+      const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+      const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`;
+
+      const reporter = els.reporter.value.trim();
+      const owner = els.owner.value.trim();
+      const type = els.type.value;
+      const note = els.note.value.trim();
+
+      const lines = [
+        "🚛 Neuer Schrott-Fund",
+        owner ? `Empfänger: ${owner}` : null,
+        `Zeit: ${formatTimestamp(timestamp)}`,
+        `Art: ${type}`,
+        `Koordinaten: ${lat.toFixed(6)}, ${lon.toFixed(6)}`,
+        accuracy ? `Genauigkeit: ca. ${accuracy} m` : null,
+        reporter ? `Finder/Kontakt: ${reporter}` : null,
+        note ? `Notiz: ${note}` : null,
+        `Google Maps: ${mapsUrl}`,
+        `OpenStreetMap: ${osmUrl}`
+      ].filter(Boolean);
+
+      return { text: lines.join("\n"), mapsUrl, lat, lon };
+    }
+
+    async function sendReport() {
+      const topic = normalizeTopic(els.topic.value);
+      if (!topic) {
+        showStatus("Bitte erst ein ntfy-Topic eintragen und speichern.", "error");
+        return;
+      }
+
+      els.sendReport.disabled = true;
+      showStatus("Standort wird abgefragt... Bitte im Browser erlauben.");
+
+      try {
+        const position = await getPosition();
+        const report = buildReport(position);
+        const endpoint = `https://ntfy.sh/${topic}`;
+
+        showStatus("Standort erhalten. Push wird gesendet...");
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Title": "SchrottRadar",
+            "Priority": "high",
+            "Tags": "rotating_light,truck,wastebasket",
+            "Click": report.mapsUrl
+          },
+          body: report.text
+        });
+
+        if (!response.ok) {
+          throw new Error(`ntfy meldet HTTP ${response.status}`);
+        }
+
+        showStatus(`Gesendet ✅\n\n${report.text}`, "ok");
+      } catch (error) {
+        showStatus(`Fehler: ${error.message || error}\n\nTipp: Standortfreigabe erlauben. Auf iPhone/Android funktioniert es am besten über HTTPS, also z. B. GitHub Pages, Netlify oder Cloudflare Pages.`, "error");
+      } finally {
+        els.sendReport.disabled = false;
+      }
+    }
+
+    async function copyReport() {
+      showStatus("Standort wird abgefragt, danach wird der Text kopiert...");
+      try {
+        const position = await getPosition();
+        const report = buildReport(position);
+        await navigator.clipboard.writeText(report.text);
+        showStatus(`Meldung kopiert ✅\n\n${report.text}`, "ok");
+      } catch (error) {
+        showStatus(`Kopieren fehlgeschlagen: ${error.message || error}`, "error");
+      }
+    }
+
+    els.saveSetup.addEventListener("click", saveSettings);
+    els.sendReport.addEventListener("click", sendReport);
+    els.copyReport.addEventListener("click", copyReport);
+    loadSettings();
+  </script>
+</body>
+</html>
