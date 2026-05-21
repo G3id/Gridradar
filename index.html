@@ -4,11 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0f172a" />
-  <title>MSN Abholservice · Pilot</title>
+  <title>MSN Abholservice · Live Pilot</title>
+
+  <!-- V3: GitHub Pages Frontend + Supabase Datenbank/Storage + ntfy Push -->
+  <!-- Supabase Setup: Tabelle reports + Storage Bucket report-photos -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <style>
     :root {
       color-scheme: dark;
-      --bg: #020617;
       --card: rgba(15, 23, 42, .94);
       --muted: #94a3b8;
       --text: #f8fafc;
@@ -18,9 +24,7 @@
       --warn: #facc15;
       --danger: #fb7185;
     }
-
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       min-height: 100vh;
@@ -32,210 +36,93 @@
       color: var(--text);
       padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
     }
-
-    .wrap {
-      width: min(860px, 100%);
-      margin: 0 auto;
-      display: grid;
-      gap: 16px;
-    }
-
-    header, section {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 26px;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, .34);
-    }
-
+    .wrap { width: min(1080px, 100%); margin: 0 auto; display: grid; gap: 16px; }
+    header, section { background: var(--card); border: 1px solid var(--line); border-radius: 26px; box-shadow: 0 24px 70px rgba(0,0,0,.34); }
     header { padding: 28px; }
     section { padding: 22px; }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(56, 189, 248, .13);
-      border: 1px solid rgba(56, 189, 248, .25);
-      color: #bae6fd;
-      font-size: 13px;
-      font-weight: 800;
-      margin-bottom: 14px;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: clamp(34px, 9vw, 64px);
-      line-height: .94;
-      letter-spacing: -.06em;
-    }
-
-    h2 {
-      margin: 0 0 12px;
-      font-size: 22px;
-      letter-spacing: -.02em;
-    }
-
-    p {
-      margin: 0;
-      color: #cbd5e1;
-      line-height: 1.55;
-      font-size: 16px;
-    }
-
-    .grid {
-      display: grid;
-      gap: 14px;
-    }
-
-    @media (min-width: 720px) {
-      .grid.two { grid-template-columns: 1fr 1fr; }
-      .grid.three { grid-template-columns: 1fr 1fr 1fr; }
-    }
-
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 800;
-      color: #e2e8f0;
-      margin: 0 0 8px;
-    }
-
-    input, textarea, select {
-      width: 100%;
-      border: 1px solid rgba(148, 163, 184, .32);
-      background: rgba(2, 6, 23, .68);
-      color: var(--text);
-      border-radius: 16px;
-      padding: 14px 15px;
-      font: inherit;
-      outline: none;
-    }
-
-    textarea { min-height: 104px; resize: vertical; }
-
-    input:focus, textarea:focus, select:focus {
-      border-color: rgba(56, 189, 248, .8);
-      box-shadow: 0 0 0 4px rgba(56, 189, 248, .12);
-    }
-
-    .actions {
-      display: grid;
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    @media (min-width: 720px) {
-      .actions.row { grid-template-columns: 1fr 1fr; }
-    }
-
-    button, .link-button {
-      border: 0;
-      border-radius: 18px;
-      padding: 16px 18px;
-      font: inherit;
-      font-weight: 900;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      transition: transform .08s ease, opacity .15s ease;
-    }
-
-    button:active, .link-button:active { transform: translateY(1px); }
-    button:disabled { opacity: .55; cursor: wait; }
-
-    .primary { background: var(--accent); color: #03131f; }
-    .secondary { background: rgba(148, 163, 184, .16); color: #e2e8f0; border: 1px solid var(--line); }
-    .success { background: var(--accent2); color: #02120a; }
-    .warning { background: var(--warn); color: #171003; }
-    .danger { background: rgba(251, 113, 133, .18); color: #fecdd3; border: 1px solid rgba(251, 113, 133, .35); }
-
-    .status, .history {
-      margin-top: 16px;
-      padding: 15px;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: rgba(2, 6, 23, .55);
-      color: #e2e8f0;
-    }
-
-    .status { white-space: pre-wrap; }
-    .status.error { border-color: rgba(251, 113, 133, .45); color: #fecdd3; }
-    .status.ok { border-color: rgba(34, 197, 94, .45); color: #bbf7d0; }
-
-    .mini {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 10px;
-    }
-
-    .card {
-      padding: 14px;
-      border-radius: 18px;
-      background: rgba(2, 6, 23, .44);
-      border: 1px solid rgba(148, 163, 184, .18);
-      margin-top: 12px;
-    }
-
-    .card strong { font-size: 16px; }
-    .card small { color: var(--muted); }
-
-    .pill {
-      display: inline-flex;
-      padding: 5px 9px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 900;
-      margin: 6px 6px 6px 0;
-      border: 1px solid var(--line);
-    }
-
-    .pill.open { color: #bae6fd; background: rgba(56, 189, 248, .13); }
-    .pill.route { color: #fef08a; background: rgba(250, 204, 21, .13); }
-    .pill.done { color: #bbf7d0; background: rgba(34, 197, 94, .13); }
-
-    .card-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .card-actions button, .card-actions a {
-      width: auto;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 9px 11px;
-      border-radius: 12px;
-      font-size: 13px;
-      text-decoration: none;
-    }
-
-    a { color: #7dd3fc; }
+    .badge { display:inline-flex; gap:8px; padding:8px 12px; border-radius:999px; background:rgba(56,189,248,.13); border:1px solid rgba(56,189,248,.25); color:#bae6fd; font-size:13px; font-weight:800; margin-bottom:14px; }
+    h1 { margin:0 0 10px; font-size:clamp(34px, 8vw, 64px); line-height:.94; letter-spacing:-.06em; }
+    h2 { margin:0 0 12px; font-size:22px; letter-spacing:-.02em; }
+    p { margin:0; color:#cbd5e1; line-height:1.55; font-size:16px; }
+    .grid { display:grid; gap:14px; }
+    @media (min-width: 760px) { .grid.two{grid-template-columns:1fr 1fr;} .grid.three{grid-template-columns:1fr 1fr 1fr;} }
+    label { display:block; font-size:14px; font-weight:800; color:#e2e8f0; margin:0 0 8px; }
+    input, textarea, select { width:100%; border:1px solid rgba(148,163,184,.32); background:rgba(2,6,23,.68); color:var(--text); border-radius:16px; padding:14px 15px; font:inherit; outline:none; }
+    textarea { min-height:104px; resize:vertical; }
+    input:focus, textarea:focus, select:focus { border-color:rgba(56,189,248,.8); box-shadow:0 0 0 4px rgba(56,189,248,.12); }
+    .actions { display:grid; gap:12px; margin-top:16px; }
+    @media (min-width: 760px) { .actions.row{grid-template-columns:1fr 1fr;} .actions.three{grid-template-columns:1fr 1fr 1fr;} }
+    button, .link-button { border:0; border-radius:18px; padding:16px 18px; font:inherit; font-weight:900; cursor:pointer; text-align:center; text-decoration:none; transition:transform .08s ease, opacity .15s ease; }
+    button:active, .link-button:active { transform:translateY(1px); }
+    button:disabled { opacity:.55; cursor:wait; }
+    .primary { background:var(--accent); color:#03131f; }
+    .secondary { background:rgba(148,163,184,.16); color:#e2e8f0; border:1px solid var(--line); }
+    .success { background:var(--accent2); color:#02120a; }
+    .warning { background:var(--warn); color:#171003; }
+    .danger { background:rgba(251,113,133,.18); color:#fecdd3; border:1px solid rgba(251,113,133,.35); }
+    .status, .history { margin-top:16px; padding:15px; border-radius:18px; border:1px solid var(--line); background:rgba(2,6,23,.55); color:#e2e8f0; }
+    .status { white-space:pre-wrap; }
+    .status.error { border-color:rgba(251,113,133,.45); color:#fecdd3; }
+    .status.ok { border-color:rgba(34,197,94,.45); color:#bbf7d0; }
+    .mini { font-size:13px; color:var(--muted); margin-top:10px; }
+    .card { padding:14px; border-radius:18px; background:rgba(2,6,23,.44); border:1px solid rgba(148,163,184,.18); margin-top:12px; }
+    .card strong { font-size:16px; }
+    .card small { color:var(--muted); }
+    .pill { display:inline-flex; padding:5px 9px; border-radius:999px; font-size:12px; font-weight:900; margin:6px 6px 6px 0; border:1px solid var(--line); }
+    .pill.open { color:#bae6fd; background:rgba(56,189,248,.13); }
+    .pill.route { color:#fef08a; background:rgba(250,204,21,.13); }
+    .pill.done { color:#bbf7d0; background:rgba(34,197,94,.13); }
+    .card-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .card-actions button, .card-actions a { width:auto; display:inline-flex; align-items:center; justify-content:center; padding:9px 11px; border-radius:12px; font-size:13px; text-decoration:none; }
+    .stats { display:grid; gap:12px; grid-template-columns:repeat(2, 1fr); margin-top:14px; }
+    @media (min-width:760px){ .stats{grid-template-columns:repeat(4, 1fr);} }
+    .stat { padding:14px; border-radius:18px; border:1px solid var(--line); background:rgba(2,6,23,.44); }
+    .stat b { display:block; font-size:28px; line-height:1; }
+    .stat span { color:var(--muted); font-size:13px; }
+    #map { height:420px; border-radius:20px; overflow:hidden; border:1px solid var(--line); margin-top:14px; background:#020617; }
+    img.thumb { width:100%; max-width:220px; border-radius:14px; border:1px solid var(--line); margin-top:8px; }
+    a { color:#7dd3fc; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="badge">🚛 Pilotbetrieb · Standortmeldung · kostenlose Testversion</div>
-      <h1>Schrott-Abholung melden</h1>
-      <p>Mit diesem Formular kannst du einen möglichen Schrottfund zur Abholung melden. Übermittelt werden Standort, Uhrzeit, Materialart und optional eine kurze Notiz. Der Service befindet sich aktuell im Testbetrieb.</p>
+      <div class="badge">🚛 Live Pilot · Datenbank · Foto · Karte · Fahrerstatus</div>
+      <h1>MSN Schrott-Abholung</h1>
+      <p>Professionelles Testsystem für Schrottmeldungen mit Standort, Foto, Live-Karte, Fahrerstatus, Dashboard, Push und Export.</p>
     </header>
 
-    <section style="border-color: rgba(56, 189, 248, .28);">
-      <h2>Schrott-Abholung im Testbetrieb</h2>
-      <p>Über dieses Formular kannst du einen möglichen Abholort übermitteln. Der Betreiber erhält eine interne Benachrichtigung mit Standort, Zeitstempel und Google-Maps-Link.</p>
-      <p class="mini">Hinweis: Diese Version ist noch kein verbindliches Buchungssystem. Eine Abholung ist erst bestätigt, wenn der Betreiber sich zurückmeldet.</p>
+    <section>
+      <h2>Systemstatus</h2>
+      <p id="systemText">Supabase noch nicht verbunden. Trage unten deine Supabase-Daten ein.</p>
+      <p class="mini">GitHub Pages bleibt kostenlos. Supabase übernimmt gemeinsame Datenbank, Live-Sync und Foto-Speicher.</p>
+    </section>
+
+    <section>
+      <h2>Admin Setup</h2>
+      <p>Diese Daten bekommst du in Supabase unter Project Settings → API. Der anon public key ist für Browser-Apps vorgesehen.</p>
+      <div class="grid two" style="margin-top:14px">
+        <div>
+          <label for="supabaseUrl">Supabase URL</label>
+          <input id="supabaseUrl" placeholder="https://xxxx.supabase.co" />
+        </div>
+        <div>
+          <label for="supabaseKey">Supabase anon public key</label>
+          <input id="supabaseKey" placeholder="eyJhbGciOi..." />
+        </div>
+      </div>
+      <div class="actions row">
+        <button class="secondary" id="saveConfig">Setup speichern</button>
+        <button class="secondary" id="testConnection">Verbindung testen</button>
+      </div>
+      <p class="mini">Für den öffentlichen Betrieb sollte dieser Setup-Bereich später entfernt und die Werte fest im Code hinterlegt werden.</p>
     </section>
 
     <section>
       <h2>Abholung anfragen</h2>
-
-      <div class="grid two">
+      <div class="grid three">
         <div>
-          <label for="reporter">Name / Kontakt für Rückfragen optional</label>
+          <label for="reporter">Name / Kontakt optional</label>
           <input id="reporter" placeholder="Name, WhatsApp oder Telefonnummer" autocomplete="name" />
         </div>
         <div>
@@ -247,11 +134,17 @@
             <option>Fahrrad</option>
             <option>Auto-/Maschinenteil</option>
             <option>Kabel / Kupfer</option>
+            <option>Aluminium</option>
+            <option>Messing</option>
             <option>Sonstiges</option>
           </select>
         </div>
         <div>
-          <label for="driver">Sammler / Fahrer</label>
+          <label for="weightKg">Menge grob optional</label>
+          <input id="weightKg" type="number" min="0" step="1" placeholder="kg geschätzt" />
+        </div>
+        <div>
+          <label for="driver">Fahrer / Sammler</label>
           <select id="driver">
             <option>Noch nicht zugewiesen</option>
             <option>Markus</option>
@@ -263,60 +156,97 @@
           <label for="photo">Foto optional</label>
           <input id="photo" type="file" accept="image/*" capture="environment" />
         </div>
+        <div>
+          <label for="valueHint">Wertschätzung</label>
+          <input id="valueHint" readonly placeholder="wird automatisch geschätzt" />
+        </div>
       </div>
-
       <div style="margin-top:14px">
         <label for="note">Beschreibung optional</label>
         <textarea id="note" placeholder="z. B. Waschmaschine vor dem Haus, Metallteile im Hof, gut erreichbar, bitte vorher melden..."></textarea>
       </div>
-
       <div class="actions row">
         <button class="primary" id="sendReport">📍 Abholort übermitteln</button>
         <button class="secondary" id="copyReport">Anfrage als Text kopieren</button>
       </div>
-
       <div id="status" class="status" hidden></div>
-      <p class="mini">Mit dem Absenden wird nur der aktuelle Standort übertragen. Diese Meldung ist eine unverbindliche Anfrage im Testbetrieb.</p>
+      <p class="mini">Mit dem Absenden wird der aktuelle Standort übertragen. Diese Meldung ist eine unverbindliche Anfrage im Testbetrieb.</p>
     </section>
 
     <section>
-      <h2>Lokale Einsatzzentrale</h2>
-      <p>Diese Übersicht speichert Meldungen auf diesem Gerät. Status und Historie sind in dieser kostenlosen GitHub-Version lokal. Für eine gemeinsame Live-Karte auf mehreren Geräten braucht es später eine kostenlose Datenbank wie Supabase.</p>
-      <div class="actions row">
-        <button class="secondary" id="showHistory">📋 Historie aktualisieren</button>
-        <button class="success" id="openNextMap">🗺️ Nächsten offenen Fund öffnen</button>
+      <h2>Dashboard</h2>
+      <div class="stats">
+        <div class="stat"><b id="statTotal">0</b><span>gesamt</span></div>
+        <div class="stat"><b id="statOpen">0</b><span>offen</span></div>
+        <div class="stat"><b id="statRoute">0</b><span>unterwegs</span></div>
+        <div class="stat"><b id="statDone">0</b><span>abgeholt</span></div>
       </div>
-      <div class="actions row">
-        <button class="secondary" id="exportHistory">Export als JSON</button>
-        <button class="danger" id="clearHistory">Lokale Historie löschen</button>
+      <div class="actions three">
+        <button class="secondary" id="refreshReports">Aktualisieren</button>
+        <button class="success" id="openNextMap">Nächsten offenen Fund öffnen</button>
+        <button class="secondary" id="exportCsv">CSV Export</button>
       </div>
-      <div id="history" class="history" hidden></div>
     </section>
 
     <section>
-      <h2>Hinweis zum Pilotbetrieb</h2>
-      <p>Dieses Formular dient aktuell zum Testen von Standortmeldungen für mögliche Schrottabholungen. Eine Abholung ist erst bestätigt, wenn der Betreiber sich zurückmeldet.</p>
+      <h2>Live-Karte</h2>
+      <p>Offen = blau, Unterwegs = gelb, Abgeholt = grün.</p>
+      <div id="map"></div>
+    </section>
+
+    <section>
+      <h2>Funde / Aufträge</h2>
+      <div id="history" class="history">Noch keine Daten geladen.</div>
     </section>
   </div>
 
   <script>
-    const INTERNAL_TOPIC = "schrott-mns-9f3a1c7b";
-    const REPORTS_KEY = "msn-abholservice-reports-v2";
+    const NTFY_TOPIC = "schrott-mns-9f3a1c7b";
+    const CONFIG_KEY = "msn-v3-supabase-config";
+    const LOCAL_BACKUP_KEY = "msn-v3-local-backup";
+    const PHOTO_BUCKET = "report-photos";
 
     const els = {
+      supabaseUrl: document.getElementById("supabaseUrl"),
+      supabaseKey: document.getElementById("supabaseKey"),
+      saveConfig: document.getElementById("saveConfig"),
+      testConnection: document.getElementById("testConnection"),
+      systemText: document.getElementById("systemText"),
       reporter: document.getElementById("reporter"),
       type: document.getElementById("type"),
+      weightKg: document.getElementById("weightKg"),
       driver: document.getElementById("driver"),
       photo: document.getElementById("photo"),
+      valueHint: document.getElementById("valueHint"),
       note: document.getElementById("note"),
       sendReport: document.getElementById("sendReport"),
       copyReport: document.getElementById("copyReport"),
       status: document.getElementById("status"),
-      showHistory: document.getElementById("showHistory"),
+      statTotal: document.getElementById("statTotal"),
+      statOpen: document.getElementById("statOpen"),
+      statRoute: document.getElementById("statRoute"),
+      statDone: document.getElementById("statDone"),
+      refreshReports: document.getElementById("refreshReports"),
       openNextMap: document.getElementById("openNextMap"),
-      exportHistory: document.getElementById("exportHistory"),
-      clearHistory: document.getElementById("clearHistory"),
+      exportCsv: document.getElementById("exportCsv"),
       history: document.getElementById("history")
+    };
+
+    let supabaseClient = null;
+    let reports = [];
+    let map = null;
+    let markersLayer = null;
+
+    const priceHints = {
+      "Kabel / Kupfer": 4.50,
+      "Messing": 2.50,
+      "Aluminium": 0.80,
+      "Mischschrott / Metall": 0.12,
+      "Waschmaschine": 0.08,
+      "Kühlschrank": 0.03,
+      "Fahrrad": 0.10,
+      "Auto-/Maschinenteil": 0.15,
+      "Sonstiges": 0.05
     };
 
     function showStatus(message, type = "") {
@@ -325,118 +255,223 @@
       els.status.textContent = message;
     }
 
+    function saveConfig() {
+      const config = {
+        url: els.supabaseUrl.value.trim(),
+        key: els.supabaseKey.value.trim()
+      };
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+      initSupabase();
+      showStatus("Setup gespeichert.", "ok");
+    }
+
+    function loadConfig() {
+      try {
+        const config = JSON.parse(localStorage.getItem(CONFIG_KEY) || "{}");
+        if (config.url) els.supabaseUrl.value = config.url;
+        if (config.key) els.supabaseKey.value = config.key;
+      } catch (_) {}
+    }
+
+    function initSupabase() {
+      const url = els.supabaseUrl.value.trim();
+      const key = els.supabaseKey.value.trim();
+      if (!url || !key) {
+        supabaseClient = null;
+        els.systemText.textContent = "Supabase noch nicht verbunden. Bis dahin läuft die App nur lokal als Backup.";
+        return;
+      }
+      supabaseClient = window.supabase.createClient(url, key);
+      els.systemText.textContent = "Supabase verbunden. Gemeinsame Datenbank, Live-Status und Foto-Upload sind aktiv.";
+      subscribeRealtime();
+      loadReports();
+    }
+
     function getPosition() {
       return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error("Dieses Gerät unterstützt keine Standortfreigabe."));
-          return;
-        }
-
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 18000,
-          maximumAge: 0
-        });
+        if (!navigator.geolocation) return reject(new Error("Dieses Gerät unterstützt keine Standortfreigabe."));
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 18000, maximumAge: 0 });
       });
     }
 
     function formatTimestamp(date) {
-      return new Intl.DateTimeFormat("de-DE", {
-        dateStyle: "full",
-        timeStyle: "medium"
-      }).format(date);
+      return new Intl.DateTimeFormat("de-DE", { dateStyle: "full", timeStyle: "medium" }).format(date);
+    }
+
+    function estimateValue() {
+      const kg = Number(els.weightKg.value || 0);
+      const price = priceHints[els.type.value] || 0;
+      const value = kg > 0 ? kg * price : 0;
+      els.valueHint.value = value > 0 ? `ca. ${value.toFixed(2)} € Rohwert` : "ohne kg keine Schätzung";
+      return value;
     }
 
     function makeId(date) {
-      return `SR-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}-${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(2, "0")}${String(date.getSeconds()).padStart(2, "0")}`;
+      return `SR-${date.getFullYear()}${String(date.getMonth()+1).padStart(2,"0")}${String(date.getDate()).padStart(2,"0")}-${String(date.getHours()).padStart(2,"0")}${String(date.getMinutes()).padStart(2,"0")}${String(date.getSeconds()).padStart(2,"0")}`;
     }
 
-    function buildReport(position) {
-      const timestamp = new Date();
-      const id = makeId(timestamp);
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
-      const accuracy = Math.round(position.coords.accuracy || 0);
-      const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-      const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
-      const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`;
+    async function uploadPhoto(reportId) {
+      if (!supabaseClient || !els.photo.files || !els.photo.files[0]) return null;
+      const file = els.photo.files[0];
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${reportId}.${ext}`;
+      const { error } = await supabaseClient.storage.from(PHOTO_BUCKET).upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabaseClient.storage.from(PHOTO_BUCKET).getPublicUrl(path);
+      return data.publicUrl;
+    }
 
-      const reporter = els.reporter.value.trim();
-      const type = els.type.value;
-      const driver = els.driver.value;
-      const note = els.note.value.trim();
-      const photoName = els.photo.files && els.photo.files[0] ? els.photo.files[0].name : "";
-
-      const report = {
-        id,
-        createdAt: timestamp.toISOString(),
-        timeLabel: formatTimestamp(timestamp),
-        status: "Offen",
-        lat,
-        lon,
-        accuracy,
-        mapsUrl,
-        routeUrl,
-        osmUrl,
-        reporter,
-        type,
-        driver,
-        note,
-        photoName
-      };
-
-      report.text = [
-        "🚛 Neue Abholanfrage · Testbetrieb",
-        `ID: ${report.id}`,
-        `Zeit: ${report.timeLabel}`,
+    function buildText(report) {
+      return [
+        "🚛 Neue Abholanfrage · Live Pilot",
+        `ID: ${report.report_code}`,
+        `Zeit: ${formatTimestamp(new Date(report.created_at))}`,
         `Status: ${report.status}`,
-        `Material/Gegenstand: ${report.type}`,
+        `Material/Gegenstand: ${report.material_type}`,
+        `Menge: ${report.weight_kg || "nicht angegeben"} kg`,
+        `Wertschätzung: ${report.estimated_value_eur ? report.estimated_value_eur.toFixed(2) + " €" : "nicht möglich"}`,
         `Fahrer: ${report.driver}`,
-        `Koordinaten: ${report.lat.toFixed(6)}, ${report.lon.toFixed(6)}`,
-        report.accuracy ? `Genauigkeit: ca. ${report.accuracy} m` : null,
+        `Koordinaten: ${Number(report.lat).toFixed(6)}, ${Number(report.lon).toFixed(6)}`,
+        report.accuracy_m ? `Genauigkeit: ca. ${report.accuracy_m} m` : null,
         report.reporter ? `Name/Kontakt: ${report.reporter}` : null,
-        report.photoName ? `Foto ausgewählt: ${report.photoName}` : null,
+        report.photo_url ? `Foto: ${report.photo_url}` : null,
         report.note ? `Beschreibung: ${report.note}` : null,
-        `Google Maps: ${report.mapsUrl}`,
-        `Route: ${report.routeUrl}`,
-        `OpenStreetMap: ${report.osmUrl}`
+        `Google Maps: ${report.maps_url}`,
+        `Route: ${report.route_url}`
       ].filter(Boolean).join("\n");
-
-      return report;
     }
 
-    function getReports() {
+    async function sendPush(report) {
+      await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+        method: "POST",
+        headers: { "Title": "MSN Abholservice", "Priority": "high", "Tags": "rotating_light,truck,wastebasket", "Click": report.maps_url },
+        body: buildText(report)
+      });
+    }
+
+    async function createReport(sendToPush = true) {
+      els.sendReport.disabled = true;
+      showStatus("Standort wird abgefragt... Bitte Standortfreigabe erlauben.");
       try {
-        return JSON.parse(localStorage.getItem(REPORTS_KEY) || "[]");
-      } catch (_) {
-        return [];
+        const pos = await getPosition();
+        const now = new Date();
+        const reportCode = makeId(now);
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+        const report = {
+          report_code: reportCode,
+          created_at: now.toISOString(),
+          status: "Offen",
+          reporter: els.reporter.value.trim(),
+          material_type: els.type.value,
+          weight_kg: els.weightKg.value ? Number(els.weightKg.value) : null,
+          estimated_value_eur: estimateValue() || null,
+          driver: els.driver.value,
+          note: els.note.value.trim(),
+          lat,
+          lon,
+          accuracy_m: Math.round(pos.coords.accuracy || 0),
+          maps_url: `https://www.google.com/maps?q=${lat},${lon}`,
+          route_url: routeUrl,
+          photo_url: null
+        };
+
+        if (supabaseClient) {
+          showStatus("Foto wird hochgeladen und Auftrag gespeichert...");
+          report.photo_url = await uploadPhoto(reportCode);
+          const { data, error } = await supabaseClient.from("reports").insert(report).select().single();
+          if (error) throw error;
+          reports.unshift(data);
+          localBackup(data);
+          if (sendToPush) await sendPush(data);
+          showStatus(`Abholanfrage gespeichert ✅\n\n${buildText(data)}`, "ok");
+        } else {
+          localBackup(report);
+          reports.unshift(report);
+          if (sendToPush) await sendPush(report);
+          showStatus(`Lokal gespeichert und Push gesendet ✅\n\n${buildText(report)}`, "ok");
+        }
+        renderAll();
+      } catch (error) {
+        showStatus(`Fehler: ${error.message || error}`, "error");
+      } finally {
+        els.sendReport.disabled = false;
       }
     }
 
-    function setReports(reports) {
-      localStorage.setItem(REPORTS_KEY, JSON.stringify(reports.slice(0, 150)));
+    async function copyReport() {
+      try {
+        const pos = await getPosition();
+        const now = new Date();
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const report = {
+          report_code: makeId(now),
+          created_at: now.toISOString(),
+          status: "Offen",
+          reporter: els.reporter.value.trim(),
+          material_type: els.type.value,
+          weight_kg: els.weightKg.value ? Number(els.weightKg.value) : null,
+          estimated_value_eur: estimateValue() || null,
+          driver: els.driver.value,
+          note: els.note.value.trim(),
+          lat,
+          lon,
+          accuracy_m: Math.round(pos.coords.accuracy || 0),
+          maps_url: `https://www.google.com/maps?q=${lat},${lon}`,
+          route_url: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`,
+          photo_url: null
+        };
+        await navigator.clipboard.writeText(buildText(report));
+        showStatus("Anfrage kopiert ✅", "ok");
+      } catch (error) {
+        showStatus(`Kopieren fehlgeschlagen: ${error.message || error}`, "error");
+      }
     }
 
-    function saveReport(report) {
-      const reports = getReports();
-      reports.unshift(report);
-      setReports(reports);
+    function localBackup(report) {
+      const old = JSON.parse(localStorage.getItem(LOCAL_BACKUP_KEY) || "[]");
+      old.unshift(report);
+      localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(old.slice(0, 200)));
     }
 
-    function updateReportStatus(id, status) {
-      const reports = getReports().map(report => report.id === id ? { ...report, status } : report);
-      setReports(reports);
-      renderHistory();
+    async function loadReports() {
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient.from("reports").select("*").order("created_at", { ascending: false }).limit(200);
+        if (error) return showStatus(`Datenbankfehler: ${error.message}`, "error");
+        reports = data || [];
+      } else {
+        reports = JSON.parse(localStorage.getItem(LOCAL_BACKUP_KEY) || "[]");
+      }
+      renderAll();
+    }
+
+    async function updateStatus(reportCode, status) {
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from("reports").update({ status }).eq("report_code", reportCode);
+        if (error) return showStatus(`Statusfehler: ${error.message}`, "error");
+      }
+      reports = reports.map(r => r.report_code === reportCode ? { ...r, status } : r);
+      renderAll();
+    }
+
+    function subscribeRealtime() {
+      if (!supabaseClient) return;
+      supabaseClient.channel("reports-live")
+        .on("postgres_changes", { event: "*", schema: "public", table: "reports" }, () => loadReports())
+        .subscribe();
+    }
+
+    function renderStats() {
+      els.statTotal.textContent = reports.length;
+      els.statOpen.textContent = reports.filter(r => r.status === "Offen").length;
+      els.statRoute.textContent = reports.filter(r => r.status === "Unterwegs").length;
+      els.statDone.textContent = reports.filter(r => r.status === "Abgeholt").length;
     }
 
     function escapeHtml(value) {
-      return String(value || "").replace(/[&<>'"]/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        "'": "&#39;",
-        '"': "&quot;"
-      }[char]));
+      return String(value || "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
     }
 
     function statusClass(status) {
@@ -446,123 +481,106 @@
     }
 
     function renderHistory() {
-      const reports = getReports();
-      els.history.hidden = false;
-
       if (!reports.length) {
-        els.history.innerHTML = "Noch keine lokalen Meldungen gespeichert.";
+        els.history.innerHTML = "Noch keine Funde vorhanden.";
         return;
       }
-
-      els.history.innerHTML = reports.map(report => `
+      els.history.innerHTML = reports.map(r => `
         <div class="card">
-          <strong>${escapeHtml(report.id)}</strong>
-          <span class="pill ${statusClass(report.status)}">${escapeHtml(report.status)}</span>
-          <br>
-          <small>${escapeHtml(new Date(report.createdAt).toLocaleString("de-DE"))}</small>
+          <strong>${escapeHtml(r.report_code)}</strong>
+          <span class="pill ${statusClass(r.status)}">${escapeHtml(r.status)}</span><br>
+          <small>${escapeHtml(new Date(r.created_at).toLocaleString("de-DE"))}</small>
           <p style="margin-top:8px">
-            <b>${escapeHtml(report.type)}</b><br>
-            Fahrer: ${escapeHtml(report.driver || "Noch nicht zugewiesen")}<br>
-            ${report.reporter ? `Kontakt: ${escapeHtml(report.reporter)}<br>` : ""}
-            ${report.note ? `Beschreibung: ${escapeHtml(report.note)}<br>` : ""}
-            ${report.photoName ? `Foto: ${escapeHtml(report.photoName)}<br>` : ""}
-            Koordinaten: ${Number(report.lat).toFixed(6)}, ${Number(report.lon).toFixed(6)}
+            <b>${escapeHtml(r.material_type)}</b><br>
+            Fahrer: ${escapeHtml(r.driver || "Noch nicht zugewiesen")}<br>
+            ${r.weight_kg ? `Menge: ${r.weight_kg} kg<br>` : ""}
+            ${r.estimated_value_eur ? `Wertschätzung: ${Number(r.estimated_value_eur).toFixed(2)} €<br>` : ""}
+            ${r.reporter ? `Kontakt: ${escapeHtml(r.reporter)}<br>` : ""}
+            ${r.note ? `Beschreibung: ${escapeHtml(r.note)}<br>` : ""}
+            Koordinaten: ${Number(r.lat).toFixed(6)}, ${Number(r.lon).toFixed(6)}
           </p>
+          ${r.photo_url ? `<a href="${r.photo_url}" target="_blank" rel="noreferrer"><img class="thumb" src="${r.photo_url}" alt="Foto vom Fund"></a>` : ""}
           <div class="card-actions">
-            <a class="secondary" href="${report.mapsUrl}" target="_blank" rel="noreferrer">Google Maps</a>
-            <a class="secondary" href="${report.routeUrl}" target="_blank" rel="noreferrer">Route</a>
-            <button class="warning" onclick="updateReportStatus('${report.id}', 'Unterwegs')">Unterwegs</button>
-            <button class="success" onclick="updateReportStatus('${report.id}', 'Abgeholt')">Abgeholt</button>
-            <button class="secondary" onclick="updateReportStatus('${report.id}', 'Offen')">Offen</button>
+            <a class="secondary" href="${r.maps_url}" target="_blank" rel="noreferrer">Google Maps</a>
+            <a class="secondary" href="${r.route_url}" target="_blank" rel="noreferrer">Route</a>
+            <button class="secondary" onclick="updateStatus('${r.report_code}', 'Offen')">Offen</button>
+            <button class="warning" onclick="updateStatus('${r.report_code}', 'Unterwegs')">Unterwegs</button>
+            <button class="success" onclick="updateStatus('${r.report_code}', 'Abgeholt')">Abgeholt</button>
           </div>
         </div>
       `).join("");
     }
 
-    function openNextMap() {
-      const reports = getReports().filter(report => report.status !== "Abgeholt");
-      if (!reports.length) {
-        showStatus("Keine offenen lokalen Funde vorhanden.", "error");
-        return;
-      }
-      window.open(reports[0].routeUrl, "_blank");
+    function initMap() {
+      if (map) return;
+      map = L.map("map").setView([51.1657, 10.4515], 6);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap" }).addTo(map);
+      markersLayer = L.layerGroup().addTo(map);
     }
 
-    function exportHistory() {
-      const reports = getReports();
-      const blob = new Blob([JSON.stringify(reports, null, 2)], { type: "application/json" });
+    function renderMap() {
+      initMap();
+      markersLayer.clearLayers();
+      const bounds = [];
+      reports.forEach(r => {
+        if (!r.lat || !r.lon) return;
+        const iconColor = r.status === "Abgeholt" ? "green" : r.status === "Unterwegs" ? "orange" : "blue";
+        const marker = L.circleMarker([r.lat, r.lon], { radius: 9, color: iconColor, fillColor: iconColor, fillOpacity: .85 });
+        marker.bindPopup(`<b>${escapeHtml(r.report_code)}</b><br>${escapeHtml(r.material_type)}<br>Status: ${escapeHtml(r.status)}<br><a href="${r.route_url}" target="_blank">Route öffnen</a>`);
+        marker.addTo(markersLayer);
+        bounds.push([r.lat, r.lon]);
+      });
+      if (bounds.length) map.fitBounds(bounds, { padding: [28, 28] });
+    }
+
+    function renderAll() {
+      renderStats();
+      renderHistory();
+      renderMap();
+    }
+
+    function openNextMap() {
+      const next = reports.find(r => r.status !== "Abgeholt");
+      if (!next) return showStatus("Keine offenen Funde vorhanden.", "error");
+      window.open(next.route_url, "_blank");
+    }
+
+    function exportCsv() {
+      const header = ["ID", "Zeit", "Status", "Material", "kg", "Wert EUR", "Fahrer", "Kontakt", "Notiz", "Latitude", "Longitude", "Maps", "Foto"];
+      const rows = reports.map(r => [r.report_code, r.created_at, r.status, r.material_type, r.weight_kg || "", r.estimated_value_eur || "", r.driver || "", r.reporter || "", r.note || "", r.lat, r.lon, r.maps_url, r.photo_url || ""]);
+      const csv = [header, ...rows].map(row => row.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "msn-abholservice-historie.json";
+      a.download = "msn-abholservice-export.csv";
       a.click();
       URL.revokeObjectURL(url);
     }
 
-    async function sendReport() {
-      els.sendReport.disabled = true;
-      showStatus("Standort wird abgefragt... Bitte die Standortfreigabe erlauben.");
-
-      try {
-        const position = await getPosition();
-        const report = buildReport(position);
-        const endpoint = `https://ntfy.sh/${INTERNAL_TOPIC}`;
-
-        showStatus("Standort erhalten. Push wird gesendet...");
-
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Title": "MSN Abholservice",
-            "Priority": "high",
-            "Tags": "rotating_light,truck,wastebasket",
-            "Click": report.mapsUrl
-          },
-          body: report.text
-        });
-
-        if (!response.ok) {
-          throw new Error(`ntfy meldet HTTP ${response.status}`);
-        }
-
-        saveReport(report);
-        renderHistory();
-        showStatus(`Abholanfrage übermittelt ✅\n\n${report.text}`, "ok");
-      } catch (error) {
-        showStatus(`Fehler: ${error.message || error}\n\nTipp: Standortfreigabe erlauben. Auf iPhone/Android funktioniert es am besten über HTTPS.`, "error");
-      } finally {
-        els.sendReport.disabled = false;
-      }
+    async function testConnection() {
+      if (!supabaseClient) initSupabase();
+      if (!supabaseClient) return showStatus("Supabase URL und Key fehlen.", "error");
+      const { error } = await supabaseClient.from("reports").select("report_code").limit(1);
+      if (error) showStatus(`Verbindung fehlgeschlagen: ${error.message}`, "error");
+      else showStatus("Verbindung erfolgreich ✅", "ok");
     }
 
-    async function copyReport() {
-      showStatus("Standort wird abgefragt, danach wird die Anfrage kopiert...");
-
-      try {
-        const position = await getPosition();
-        const report = buildReport(position);
-        await navigator.clipboard.writeText(report.text);
-        saveReport(report);
-        renderHistory();
-        showStatus(`Anfrage kopiert ✅\n\n${report.text}`, "ok");
-      } catch (error) {
-        showStatus(`Kopieren fehlgeschlagen: ${error.message || error}`, "error");
-      }
-    }
-
-    els.sendReport.addEventListener("click", sendReport);
+    els.saveConfig.addEventListener("click", saveConfig);
+    els.testConnection.addEventListener("click", testConnection);
+    els.sendReport.addEventListener("click", () => createReport(true));
     els.copyReport.addEventListener("click", copyReport);
-    els.showHistory.addEventListener("click", renderHistory);
+    els.refreshReports.addEventListener("click", loadReports);
     els.openNextMap.addEventListener("click", openNextMap);
-    els.exportHistory.addEventListener("click", exportHistory);
-    els.clearHistory.addEventListener("click", () => {
-      if (!confirm("Lokale Historie wirklich löschen?")) return;
-      localStorage.removeItem(REPORTS_KEY);
-      renderHistory();
-      showStatus("Lokale Historie gelöscht.", "ok");
-    });
+    els.exportCsv.addEventListener("click", exportCsv);
+    els.type.addEventListener("change", estimateValue);
+    els.weightKg.addEventListener("input", estimateValue);
 
-    renderHistory();
+    loadConfig();
+    initSupabase();
+    initMap();
+    loadReports();
+    estimateValue();
   </script>
 </body>
 </html>
