@@ -49,7 +49,7 @@ function ReportForm() {
     let photo_url = null
 
     if (file) {
-      const fileName = `${Date.now()}-${file.name}`
+      const fileName = `reports/${Date.now()}-${file.name}`
       const { error: uploadError } = await supabase.storage
         .from('scrap-photos')
         .upload(fileName, file)
