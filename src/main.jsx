@@ -70,7 +70,7 @@ function ReportForm() {
       lat: coords?.lat ?? null,
       lng: coords?.lng ?? null,
       photo_url,
-      status: 'neu',
+      status: 'new',
     })
 
     if (error) {
